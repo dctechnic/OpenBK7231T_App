@@ -15,8 +15,7 @@ static float power_cal = 1;
 static int latest_raw_voltage;
 static float latest_raw_current;
 static int latest_raw_power;
-
-//#define PWRCAL_DEBUG
+#define PWRCAL_DEBUG
 
 static commandResult_t Calibrate(const char *cmd, const char *args, float raw,
                                  float *cal, int cfg_index) {
@@ -73,7 +72,7 @@ static commandResult_t CalibratePower(const void *context, const char *cmd,
 static commandResult_t GetVoltageCal(const void *context, const char *cmd,
                                       const char *args, int cmdFlags) {
 
-	float voltage_cal = CFG_GetPowerMeasurementCalibrationFloat(CFG_OBK_VOLTAGE, default_voltage_cal);
+	float voltage_cal = CFG_GetPowerMeasurementCalibrationFloat(CFG_OBK_VOLTAGE, 0);
 	ADDLOG_INFO(LOG_FEATURE_CMD, "Voltage calibration is %f", voltage_cal);									
     return CMD_RES_OK;
 }
@@ -81,7 +80,7 @@ static commandResult_t GetVoltageCal(const void *context, const char *cmd,
 static commandResult_t GetCurrentCal(const void *context, const char *cmd,
                                       const char *args, int cmdFlags) {
 
-	float current_cal = CFG_GetPowerMeasurementCalibrationFloat(CFG_OBK_CURRENT, default_current_cal);
+	float current_cal = CFG_GetPowerMeasurementCalibrationFloat(CFG_OBK_CURRENT, 0);
 	ADDLOG_INFO(LOG_FEATURE_CMD, "Current calibration is %f", current_cal);									
     return CMD_RES_OK;
 }
@@ -89,8 +88,7 @@ static commandResult_t GetCurrentCal(const void *context, const char *cmd,
 static commandResult_t GetPowerCal(const void *context, const char *cmd,
                                       const char *args, int cmdFlags) {
 
-    float power_cal = CFG_GetPowerMeasurementCalibrationFloat(CFG_OBK_POWER,
-                                                        default_power_cal);					
+    float power_cal = CFG_GetPowerMeasurementCalibrationFloat(CFG_OBK_POWER,0);					
     ADDLOG_INFO(LOG_FEATURE_CMD, "Power calibration is %f", power_cal);
     return CMD_RES_OK;
 }
