@@ -70,6 +70,15 @@ static commandResult_t CalibratePower(const void *context, const char *cmd,
     return Calibrate(cmd, args, latest_raw_power, &power_cal, CFG_OBK_POWER);
 }
 
+static commandResult_t GetVoltageCal(const void *context, const char *cmd,
+                                      const char *args, int cmdFlags) {
+
+	float voltage_cal = CFG_GetPowerMeasurementCalibrationFloat(CFG_OBK_VOLTAGE, default_voltage_cal);
+	ADDLOG_INFO(LOG_FEATURE_CMD, "Voltage calibration is %f", voltage_cal);									
+    return CMD_RES_OK;
+}
+
+
 static float Scale(float raw, float cal) {
     return (cal_type == PWR_CAL_MULTIPLY ? raw * cal : raw / cal);
 }
@@ -100,7 +109,13 @@ void PwrCal_Init(pwr_cal_type_t type, float default_voltage_cal,
 	//cmddetail:"fn":"CalibratePower","file":"driver/drv_pwrCal.c","requires":"",
 	//cmddetail:"examples":""}
     CMD_RegisterCommand("PowerSet", CalibratePower, NULL);
+
+	CMD_RegisterCommand("GetVoltageCal", CalVoltageGet, NULL);
+
+
 }
+
+
 
 void PwrCal_Scale(int raw_voltage, float raw_current, int raw_power,
                   float *real_voltage, float *real_current, float *real_power) {
