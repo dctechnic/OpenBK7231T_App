@@ -126,8 +126,9 @@ void PwrCal_Init(pwr_cal_type_t type, float default_voltage_cal,
 	//cmddetail:"examples":""}
     CMD_RegisterCommand("PowerSet", CalibratePower, NULL);
 
-	CMD_RegisterCommand("GetVoltageCal", CalVoltageGet, NULL);
-
+	CMD_RegisterCommand("GetVoltageCal", GetVoltageCal(), NULL);
+	CMD_RegisterCommand("GetCurrentCal", GetCurrentCal(), NULL);
+	CMD_RegisterCommand("GetPowerCal", GetPowerCal(), NULL);
 
 }
 
