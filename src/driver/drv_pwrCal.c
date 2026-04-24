@@ -78,6 +78,22 @@ static commandResult_t GetVoltageCal(const void *context, const char *cmd,
     return CMD_RES_OK;
 }
 
+static commandResult_t GetCurrentCal(const void *context, const char *cmd,
+                                      const char *args, int cmdFlags) {
+
+	float current_cal = CFG_GetPowerMeasurementCalibrationFloat(CFG_OBK_CURRENT, default_current_cal);
+	ADDLOG_INFO(LOG_FEATURE_CMD, "Current calibration is %f", current_cal);									
+    return CMD_RES_OK;
+}
+
+static commandResult_t GetPowerCal(const void *context, const char *cmd,
+                                      const char *args, int cmdFlags) {
+
+    float power_cal = CFG_GetPowerMeasurementCalibrationFloat(CFG_OBK_POWER,
+                                                        default_power_cal);					
+    ADDLOG_INFO(LOG_FEATURE_CMD, "Power calibration is %f", power_cal);
+    return CMD_RES_OK;
+}
 
 static float Scale(float raw, float cal) {
     return (cal_type == PWR_CAL_MULTIPLY ? raw * cal : raw / cal);
