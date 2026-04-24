@@ -117,6 +117,11 @@
 // extend to 0x21000 if moving obk config to ef
 #define ENV_AREA_SIZE             0x15000
 
+#elif PLATFORM_W600
+
+#define EF_START_ADDR             0xF1000
+#define ENV_AREA_SIZE             0x8000
+
 #elif PLATFORM_XR809
 
 #define EF_START_ADDR             0x1E0000
@@ -141,6 +146,18 @@
 
 #define EF_START_ADDR             0xF4000
 #define ENV_AREA_SIZE             0xA000
+
+#elif PLATFORM_BEKEN
+
+#define EF_START_ADDR             0x1E5000
+#define ENV_AREA_SIZE             0x8000
+
+#elif PLATFORM_BL_NEW
+
+#define EF_START_ADDR             0
+extern uint32_t ENV_AREA_SIZE;
+#undef EF_WRITE_GRAN
+#define EF_WRITE_GRAN             8
 
 #elif WINDOWS
 

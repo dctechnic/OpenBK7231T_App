@@ -268,7 +268,11 @@ static commandResult_t CMD_SetPinRole(const void *context, const char *cmd, cons
 		return CMD_RES_NOT_ENOUGH_ARGUMENTS;
 	}
 
-	pin = Tokenizer_GetArgInteger(0);
+	pin = Tokenizer_GetPin(0,-1);
+	if (pin==-1){
+		ADDLOG_INFO(LOG_FEATURE_CMD, "Unknown pin %s",Tokenizer_GetArg(0));
+		return CMD_RES_BAD_ARGUMENT;
+	}
 	role = Tokenizer_GetArg(1);
 
 	roleIndex = PIN_ParsePinRoleName(role);
@@ -596,7 +600,7 @@ void CMD_InitChannelCommands(){
 	CMD_RegisterCommand("FullBootTime", CMD_FullBootTime, NULL);
 	//cmddetail:{"name":"SetChannelEnum","args":"[ChannelIndex][Value:Title][Value:Title]",
 	//cmddetail:"descr":"Creates a channel enumeration type.  Channel type must be set to Enum or ReadOnlyEnum. e.g. SetChannelEnum 1:One \"2:Enum Two\" 5:Five",
-	//cmddetail:"fn":"SetChannelEnum","file":"cmnds/cmd_channels.c","requires":"",
+	//cmddetail:"fn":"CMD_SetChannelEnum","file":"cmnds/cmd_channels.c","requires":"",
 	//cmddetail:"examples":""}
 	CMD_RegisterCommand("SetChannelEnum", CMD_SetChannelEnum, NULL);
 	//cmddetail:{"name":"SetChannelLabel","args":"[ChannelIndex][Str][bHideTogglePrefix]",

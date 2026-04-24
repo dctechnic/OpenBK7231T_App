@@ -13,6 +13,7 @@
 #include "lwip/ip_addr.h"
 #include "lwip/inet.h"
 #include "../cJSON/cJSON.h"
+#include "../libraries/obktime/obktime.h"	// for time functions
 
 #if ENABLE_DRIVER_OPENWEATHERMAP
 
@@ -61,7 +62,9 @@ static void json_get_string(cJSON *parent, const char *name, char *dst, int dstS
 	strncpy(dst, src, dstSize - 1);
 	dst[dstSize - 1] = '\0';
 }
-
+const char *Weather_GetReply() {
+	return g_reply;
+}
 void Weather_SetReply(const char *s) {
 	const char *json_start = strstr(s, "\r\n\r\n");
 	if (json_start) {
@@ -165,7 +168,7 @@ static void sendQueryThreadInternal() {
 		return;
 	}
 	addr_list = (struct in_addr **)he->h_addr_list;
-	ADDLOG_ERROR(LOG_FEATURE_HTTP, "Resolved IP address: %s\n", inet_ntoa(*addr_list[0]));
+	ADDLOG_ERROR(LOG_FEATURE_HTTP, "Resolved IP address: %s", inet_ntoa(*addr_list[0]));
 
 	if ((s = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 		ADDLOG_ERROR(LOG_FEATURE_HTTP, "Could not create socket.");
@@ -210,11 +213,11 @@ void startWeatherThread() {
 	err = rtos_create_thread(&g_weather_thread, BEKEN_APPLICATION_PRIORITY,
 		"OWM",
 		(beken_thread_function_t)weather_thread,
-		8192,
+		4096,
 		(beken_thread_arg_t)0);
 	if (err != kNoErr)
 	{
-		ADDLOG_ERROR(LOG_FEATURE_HTTP, "create \"OWM\" thread failed with %i!\r\n", err);
+		ADDLOG_ERROR(LOG_FEATURE_HTTP, "create \"OWM\" thread failed with %i!", err);
 	}
 }
 static commandResult_t CMD_OWM_Request(const void *context, const char *cmd, const char *args, int flags) {
@@ -271,12 +274,17 @@ void OWM_AppendInformationToHTTPIndexPage(http_request_t *request, int bPreState
 		hprintf255(request, "<h5>Weather: %s (%s)</h5>", g_weather.main_weather, g_weather.description);
 		hprintf255(request, "<h5>Temperature: %.2f C, Pressure: %d hPa, Humidity: %d%%</h5>", g_weather.temp, g_weather.pressure, g_weather.humidity);
 
+/*
 		struct tm *tm = gmtime(&g_weather.sunrise);
 		strftime(buff, sizeof(buff), "%H:%M:%S", tm);
 		hprintf255(request, "<h5>Timezone: %d, Sunrise: %s, ", g_weather.timezone, buff);
 		tm = gmtime(&g_weather.sunset);
 		strftime(buff, sizeof(buff), "%H:%M:%S", tm);
 		hprintf255(request, "Sunset: %s</h5>", buff);
+*/
+		hprintf255(request, "<h5>Timezone: %d, Sunrise: %s, ", g_weather.timezone, TS2STR(g_weather.sunrise,TIME_FORMAT_TIMEonly));
+		hprintf255(request, "Sunset: %s</h5>", TS2STR(g_weather.sunset,TIME_FORMAT_TIMEonly));
+
 	}
 }
 /*

@@ -29,6 +29,10 @@ else ifeq ($(VARIANT),sensors)
 OBK_VARIANT = 5
 else ifeq ($(VARIANT),hlw8112)
 OBK_VARIANT = 6
+else ifeq ($(VARIANT),battery)
+OBK_VARIANT = 7
+else ifeq ($(VARIANT),btproxy)
+OBK_VARIANT = 8
 else ifeq ($(VARIANT),2M)
 OBK_VARIANT = 1
 ESP_FSIZE = 2MB
@@ -129,7 +133,12 @@ sdk/OpenLN882H/project/OpenBeken/app:
 	@mkdir -p "sdk/OpenLN882H/project/OpenBeken"
 	ln -s "$(shell pwd)/" "sdk/OpenLN882H/project/OpenBeken/app"
 
-.PHONY: prebuild_OpenBK7231N prebuild_OpenBK7231T prebuild_OpenBL602 prebuild_OpenLN882H 
+sdk/OpenLN8825/project/OpenBeken/app:
+	@echo Create symlink for $(APP_NAME) into sdk folder
+	@mkdir -p "sdk/OpenLN8825/project/OpenBeken"
+	ln -s "$(shell pwd)/" "sdk/OpenLN8825/project/OpenBeken/app"
+
+.PHONY: prebuild_OpenBK7231N prebuild_OpenBK7231T prebuild_OpenBL602 prebuild_OpenLN882H prebuild_OpenLN8825 
 .PHONY: prebuild_OpenW600 prebuild_OpenW800 prebuild_OpenXR809 prebuild_OpenXR806 prebuild_OpenXR872 prebuild_ESPIDF prebuild_OpenTR6260
 .PHONY: prebuild_OpenRTL87X0C prebuild_OpenBK7238 prebuild_OpenBK7231N_ALT prebuild_OpenBK7231U
 .PHONY: prebuild_OpenBK7231N_ALT prebuild_OpenBK7231T_ALT prebuild_OpenBK7252
@@ -167,6 +176,14 @@ prebuild_OpenLN882H: berry
 		echo "prebuild found for OpenLN882H"; \
 		sh platforms/LN882H/pre_build.sh; \
 	else echo "prebuild for OpenLN882H not found ... "; \
+	fi
+
+prebuild_OpenLN8825: berry
+	git submodule update --init --recursive --depth=1 sdk/OpenLN8825
+	@if [ -e platforms/LN8825/pre_build.sh ]; then \
+		echo "prebuild found for OpenLN8825"; \
+		sh platforms/LN8825/pre_build.sh; \
+	else echo "prebuild for OpenLN8825 not found ... "; \
 	fi
 
 prebuild_OpenW600: berry
@@ -227,7 +244,7 @@ endif
 	fi
 	
 prebuild_ESP8266: berry
-	#git submodule update --init --recursive --depth=1 sdk/ESP8266_RTOS_SDK
+	#git submodule update --init --recursive --depth=1 sdk/OpenESP8266
 	-rm platforms/ESP8266/sdkconfig
 	-rm platforms/ESP8266/partitions.csv
 	cp platforms/ESP8266/partitions-2mb.csv platforms/ESP8266/partitions.csv
@@ -247,6 +264,7 @@ prebuild_OpenTR6260: berry
 
 prebuild_OpenRTL87X0C: berry
 	git submodule update --init --recursive --depth=1 sdk/OpenRTL87X0C
+	if [ ! -e sdk/OpenRTL87X0C/tools/arm-none-eabi-gcc/arm-none-eabi ]; then cd sdk/OpenRTL87X0C/tools/arm-none-eabi-gcc && XZ_OPT="-T0" tar -xf *.tar.xz; fi
 	@if [ -e platforms/RTL87X0C/pre_build.sh ]; then \
 		echo "prebuild found for OpenRTL87X0C"; \
 		sh platforms/RTL87X0C/pre_build.sh; \
@@ -263,6 +281,10 @@ prebuild_OpenRTL8710B: berry
 	@if [ -e platforms/RTL8710B/tools/amebaz_ota_combine ]; then \
 		echo "amebaz_ota_combine is already compiled"; \
 	else g++ -o platforms/RTL8710B/tools/amebaz_ota_combine platforms/RTL8710B/tools/amebaz_ota_combine.cpp --std=c++17 -lstdc++fs; \
+	fi
+	@if [ -e platforms/RTL8710B/tools/amebaz_ug_from_ota ]; then \
+		echo "amebaz_ug_from_ota is already compiled"; \
+	else g++ -o platforms/RTL8710B/tools/amebaz_ug_from_ota platforms/RTL8710B/tools/amebaz_ug_from_ota.cpp --std=c++17; \
 	fi
 
 prebuild_OpenRTL8710A: berry
@@ -283,6 +305,7 @@ prebuild_OpenRTL8720D: berry
 
 prebuild_OpenBK7238: berry
 	git submodule update --init --recursive --depth=1 sdk/beken_freertos_sdk
+	if [ ! -e sdk/beken_freertos_sdk/toolchain/arm-none-eabi ]; then cd sdk/beken_freertos_sdk/toolchain && XZ_OPT="-T0" tar -xf *.tar.xz; fi
 	@if [ -e platforms/BK723x/pre_build_7238.sh ]; then \
 		echo "prebuild found for OpenBK7238"; \
 		sh platforms/BK723x/pre_build_7238.sh; \
@@ -291,6 +314,7 @@ prebuild_OpenBK7238: berry
 
 prebuild_OpenBK7231N_ALT: berry
 	git submodule update --init --recursive --depth=1 sdk/beken_freertos_sdk
+	if [ ! -e sdk/beken_freertos_sdk/toolchain/arm-none-eabi ]; then cd sdk/beken_freertos_sdk/toolchain && XZ_OPT="-T0" tar -xf *.tar.xz; fi
 	@if [ -e platforms/BK723x/pre_build_7231n.sh ]; then \
 		echo "prebuild found for OpenBK7231N"; \
 		sh platforms/BK723x/pre_build_7231n.sh; \
@@ -299,6 +323,7 @@ prebuild_OpenBK7231N_ALT: berry
 
 prebuild_OpenBK7231U: berry
 	git submodule update --init --recursive --depth=1 sdk/beken_freertos_sdk
+	if [ ! -e sdk/beken_freertos_sdk/toolchain/arm-none-eabi ]; then cd sdk/beken_freertos_sdk/toolchain && XZ_OPT="-T0" tar -xf *.tar.xz; fi
 	@if [ -e platforms/BK723x/pre_build_7231u.sh ]; then \
 		echo "prebuild found for OpenBK7231U"; \
 		sh platforms/BK723x/pre_build_7231u.sh; \
@@ -307,6 +332,7 @@ prebuild_OpenBK7231U: berry
 
 prebuild_OpenBK7231T_ALT: berry
 	git submodule update --init --recursive --depth=1 sdk/beken_freertos_sdk
+	if [ ! -e sdk/beken_freertos_sdk/toolchain/arm-none-eabi ]; then cd sdk/beken_freertos_sdk/toolchain && XZ_OPT="-T0" tar -xf *.tar.xz; fi
 	@if [ -e platforms/BK723x/pre_build_7231t.sh ]; then \
 		echo "prebuild found for OpenBK7231T"; \
 		sh platforms/BK723x/pre_build_7231t.sh; \
@@ -315,6 +341,7 @@ prebuild_OpenBK7231T_ALT: berry
 
 prebuild_OpenBK7252: berry
 	git submodule update --init --recursive --depth=1 sdk/beken_freertos_sdk
+	if [ ! -e sdk/beken_freertos_sdk/toolchain/arm-none-eabi ]; then cd sdk/beken_freertos_sdk/toolchain && XZ_OPT="-T0" tar -xf *.tar.xz; fi
 	@if [ -e platforms/BK723x/pre_build_7252.sh ]; then \
 		echo "prebuild found for OpenBK7252"; \
 		sh platforms/BK723x/pre_build_7252.sh; \
@@ -323,6 +350,7 @@ prebuild_OpenBK7252: berry
 
 prebuild_OpenBK7252N: berry
 	git submodule update --init --recursive --depth=1 sdk/beken_freertos_sdk
+	if [ ! -e sdk/beken_freertos_sdk/toolchain/arm-none-eabi ]; then cd sdk/beken_freertos_sdk/toolchain && XZ_OPT="-T0" tar -xf *.tar.xz; fi
 	@if [ -e platforms/BK723x/pre_build_7252n.sh ]; then \
 		echo "prebuild found for OpenBK7252N"; \
 		sh platforms/BK723x/pre_build_7252n.sh; \
@@ -370,6 +398,24 @@ prebuild_OpenTXW81X: berry
 	else echo "prebuild for OpenTXW81X not found ... "; \
 	fi
 
+prebuild_OpenBL616: berry
+	git submodule update --init --recursive --depth=1 sdk/bouffalo_sdk
+	if [ ! -e platforms/BL616/gcc ]; then cd platforms/BL616 && git clone https://github.com/bouffalolab/toolchain_gcc_t-head_linux.git gcc --depth=1; fi 
+	@if [ -e platforms/BL616/pre_build.sh ]; then \
+		echo "prebuild found for OpenBL616"; \
+		sh platforms/BL616/pre_build.sh; \
+	else echo "prebuild for OpenBL616 not found ... "; \
+	fi
+
+prebuild_OpenBL602_ALT: berry
+	git submodule update --init --recursive --depth=1 sdk/bouffalo_sdk
+	if [ ! -e platforms/BL616/gcc ]; then cd platforms/BL616 && git clone https://github.com/bouffalolab/toolchain_gcc_t-head_linux.git gcc --depth=1; fi 
+	@if [ -e platforms/BL602_ALT/pre_build.sh ]; then \
+		echo "prebuild found for OpenBL602_ALT"; \
+		sh platforms/BL602_ALT/pre_build.sh; \
+	else echo "prebuild for OpenBL602_ALT not found ... "; \
+	fi
+
 prebuild_OpenRDA5981: berry
 ifdef GITHUB_ACTIONS
 	# just so that there would be no cache error
@@ -406,11 +452,11 @@ OpenXR872: prebuild_OpenXR872 sdk/OpenXR872/project/demo/hello_demo/shared
 
 .PHONY: OpenXR806
 OpenXR806: prebuild_OpenXR806 sdk/OpenXR806/project/demo/sharedApp/shared
-	$(MAKE) -C sdk/OpenXR806/src CC_DIR=$(ARM_NONE_EABI_GCC_PATH) APP_VERSION=$(APP_VERSION) OBK_VARIANT=$(OBK_VARIANT) -j $(shell nproc) --no-print-directory
-	$(MAKE) -C sdk/OpenXR806/src install CC_DIR=$(ARM_NONE_EABI_GCC_PATH) APP_VERSION=$(APP_VERSION) OBK_VARIANT=$(OBK_VARIANT) -j $(shell nproc) --no-print-directory
-	$(MAKE) -C sdk/OpenXR806/project/demo/sharedApp/gcc CC_DIR=$(ARM_NONE_EABI_GCC_PATH) APP_VERSION=$(APP_VERSION) OBK_VARIANT=$(OBK_VARIANT) -j $(shell nproc) --no-print-directory
-	$(MAKE) -C sdk/OpenXR806/project/demo/sharedApp/gcc image CC_DIR=$(ARM_NONE_EABI_GCC_PATH) APP_VERSION=$(APP_VERSION) OBK_VARIANT=$(OBK_VARIANT) -j $(shell nproc) --no-print-directory
-	$(MAKE) -C sdk/OpenXR806/project/demo/sharedApp/gcc image_xz CC_DIR=$(ARM_NONE_EABI_GCC_PATH) APP_VERSION=$(APP_VERSION) OBK_VARIANT=$(OBK_VARIANT) -j $(shell nproc) --no-print-directory
+	$(MAKE) -C sdk/OpenXR806/src CC_DIR=$(ARM_NONE_EABI_GCC_PATH) APP_VERSION=$(APP_VERSION) OPLATFORM=3 OBK_VARIANT=$(OBK_VARIANT) -j $(shell nproc) --no-print-directory
+	$(MAKE) -C sdk/OpenXR806/src install CC_DIR=$(ARM_NONE_EABI_GCC_PATH) APP_VERSION=$(APP_VERSION) OPLATFORM=3 OBK_VARIANT=$(OBK_VARIANT) -j $(shell nproc) --no-print-directory
+	$(MAKE) -C sdk/OpenXR806/project/demo/sharedApp/gcc CC_DIR=$(ARM_NONE_EABI_GCC_PATH) APP_VERSION=$(APP_VERSION) OPLATFORM=3 OBK_VARIANT=$(OBK_VARIANT) -j $(shell nproc) --no-print-directory
+	$(MAKE) -C sdk/OpenXR806/project/demo/sharedApp/gcc image CC_DIR=$(ARM_NONE_EABI_GCC_PATH) APP_VERSION=$(APP_VERSION) OPLATFORM=3 OBK_VARIANT=$(OBK_VARIANT) -j $(shell nproc) --no-print-directory
+	$(MAKE) -C sdk/OpenXR806/project/demo/sharedApp/gcc image_xz CC_DIR=$(ARM_NONE_EABI_GCC_PATH) APP_VERSION=$(APP_VERSION) OPLATFORM=3 OBK_VARIANT=$(OBK_VARIANT) -j $(shell nproc) --no-print-directory
 	mkdir -p output/$(APP_VERSION)
 	cp sdk/OpenXR806/project/demo/sharedApp/image/xr806/xr_system.img output/$(APP_VERSION)/OpenXR806_$(APP_VERSION).img
 	cp sdk/OpenXR806/project/demo/sharedApp/image/xr806/xr_system_img_xz.img output/$(APP_VERSION)/OpenXR806_$(APP_VERSION)_ota.img
@@ -452,14 +498,14 @@ OpenW800: prebuild_OpenW800 sdk/OpenW800/tools/w800/csky/bin sdk/OpenW800/shared
 	# if building new version, make sure "new_http.o" is deleted (it contains build time and version, so build time is set to actual time)
 	rm -rf sdk/OpenW800/bin/build/w800/obj/sharedAppContainer/sharedApp/src/httpserver/new_http.o
 	# define APP_Version so it's not "W800_Test" every time
-	$(MAKE) -C sdk/OpenW800 OBK_VARIANT=$(OBK_VARIANT) CONFIG_W800_USE_LIB=n CONFIG_W800_TOOLCHAIN_PATH="$(shell realpath sdk/OpenW800/tools/w800/csky/bin)/"
+	$(MAKE) -C sdk/OpenW800 OBK_VARIANT=$(OBK_VARIANT) CONFIG_W800_USE_LIB=n CONFIG_W800_TOOLCHAIN_PATH="$(shell realpath sdk/OpenW800/tools/w800/csky/bin)/" --no-print-directory
 	mkdir -p output/$(APP_VERSION)
 	cp sdk/OpenW800/bin/w800/w800.fls output/$(APP_VERSION)/OpenW800_$(APP_VERSION).fls
 	cp sdk/OpenW800/bin/w800/w800_ota.img output/$(APP_VERSION)/OpenW800_$(APP_VERSION)_ota.img
 
 .PHONY: OpenW600
 OpenW600: prebuild_OpenW600 sdk/OpenW600/tools/gcc-arm-none-eabi-4_9-2015q1/bin sdk/OpenW600/sharedAppContainer/sharedApp
-	$(MAKE) -C sdk/OpenW600 TOOL_CHAIN_PATH="$(shell realpath sdk/OpenBK7231T/platforms/bk7231t/toolchain/gcc-arm-none-eabi-4_9-2015q1/bin)/" APP_VERSION=$(APP_VERSION) OBK_VARIANT=$(OBK_VARIANT)
+	$(MAKE) -C sdk/OpenW600 TOOL_CHAIN_PATH="$(shell realpath sdk/OpenBK7231T/platforms/bk7231t/toolchain/gcc-arm-none-eabi-4_9-2015q1/bin)/" APP_VERSION=$(APP_VERSION) OBK_VARIANT=$(OBK_VARIANT) --no-print-directory
 	mkdir -p output/$(APP_VERSION)
 	cp sdk/OpenW600/bin/w600/w600.fls output/$(APP_VERSION)/OpenW600_$(APP_VERSION).fls
 	cp sdk/OpenW600/bin/w600/w600_gz.img output/$(APP_VERSION)/OpenW600_$(APP_VERSION)_gz.img
@@ -471,6 +517,14 @@ OpenLN882H: prebuild_OpenLN882H sdk/OpenLN882H/project/OpenBeken/app
 	mkdir -p output/$(APP_VERSION)
 	cp sdk/OpenLN882H/build/bin/flashimage.bin output/$(APP_VERSION)/OpenLN882H_$(APP_VERSION).bin
 	cp sdk/OpenLN882H/build/bin/flashimage-ota-xz-v0.1.bin output/$(APP_VERSION)/OpenLN882H_$(APP_VERSION)_OTA.bin
+
+.PHONY: OpenLN8825
+OpenLN8825: prebuild_OpenLN8825 sdk/OpenLN8825/project/OpenBeken/app
+	CROSS_TOOLCHAIN_ROOT=$(ARM_NONE_EABI_GCC_PATH)/../ APP_VERSION=$(APP_VERSION) OBK_VARIANT=$(OBK_VARIANT) cmake sdk/OpenLN8825 -B sdk/OpenLN8825/build
+	CROSS_TOOLCHAIN_ROOT=$(ARM_NONE_EABI_GCC_PATH)/../ APP_VERSION=$(APP_VERSION) OBK_VARIANT=$(OBK_VARIANT) cmake --build ./sdk/OpenLN8825/build -j $(shell nproc)
+	mkdir -p output/$(APP_VERSION)
+	cp sdk/OpenLN8825/build/bin/flashimage.bin output/$(APP_VERSION)/OpenLN8825_$(APP_VERSION).bin
+	cp sdk/OpenLN8825/build/bin/flashimage-ota-xz.bin output/$(APP_VERSION)/OpenLN8825_$(APP_VERSION)_ota.img
 
 .PHONY: OpenESP32
 OpenESP32: prebuild_ESPIDF
@@ -541,12 +595,12 @@ OpenESP8266: prebuild_ESP8266
 	APP_VERSION=$(APP_VERSION) OBK_VARIANT=$(OBK_VARIANT) cmake platforms/ESP8266 -B platforms/ESP8266/build
 	APP_VERSION=$(APP_VERSION) OBK_VARIANT=$(OBK_VARIANT) cmake --build ./platforms/ESP8266/build -j $(shell nproc)
 	mkdir -p output/$(APP_VERSION)
-	python3 -m esptool -c esp8266 merge_bin -o output/$(APP_VERSION)/OpenESP8266_2MB_$(APP_VERSION).factory.bin --flash_mode dout --flash_size 2MB 0x0 ./platforms/ESP8266/build/bootloader/bootloader.bin 0x8000 ./platforms/ESP8266/build/partition_table/partition-table.bin 0x10000 ./platforms/ESP8266/build/OpenBeken.bin
+	esptool.py -c esp8266 merge_bin -o output/$(APP_VERSION)/OpenESP8266_2MB_$(APP_VERSION).factory.bin --flash_mode dout --flash_size 2MB 0x0 ./platforms/ESP8266/build/bootloader/bootloader.bin 0x8000 ./platforms/ESP8266/build/partition_table/partition-table.bin 0x10000 ./platforms/ESP8266/build/OpenBeken.bin
 	cp ./platforms/ESP8266/build/OpenBeken.bin output/$(APP_VERSION)/OpenESP8266_$(APP_VERSION).img
 	-rm platforms/ESP-IDF/partitions.csv
 	cp platforms/ESP8266/partitions-1mb.csv platforms/ESP8266/partitions.csv
 	cd platforms/ESP8266/ && idf.py partition_table
-	python3 -m esptool -c esp8266 merge-bin -o output/$(APP_VERSION)/OpenESP8266_1MB_$(APP_VERSION).factory.bin --flash-mode dout --flash-size 1MB 0x0 ./platforms/ESP8266/build/bootloader/bootloader.bin 0x8000 ./platforms/ESP8266/build/partition_table/partition-table.bin 0x10000 ./platforms/ESP8266/build/OpenBeken.bin
+	esptool.py -c esp8266 merge-bin -o output/$(APP_VERSION)/OpenESP8266_1MB_$(APP_VERSION).factory.bin --flash-mode dout --flash-size 1MB 0x0 ./platforms/ESP8266/build/bootloader/bootloader.bin 0x8000 ./platforms/ESP8266/build/partition_table/partition-table.bin 0x10000 ./platforms/ESP8266/build/OpenBeken.bin
 	
 .PHONY: OpenTR6260
 OpenTR6260: prebuild_OpenTR6260
@@ -557,7 +611,7 @@ OpenTR6260: prebuild_OpenTR6260
 	
 .PHONY: OpenRTL87X0C
 OpenRTL87X0C: prebuild_OpenRTL87X0C
-	$(MAKE) -C sdk/OpenRTL87X0C/project/OpenBeken/GCC-RELEASE APP_VERSION=$(APP_VERSION) OBK_VARIANT=$(OBK_VARIANT) -j $(shell nproc)
+	ARM_GCC_TOOLCHAIN=$(PWD)/sdk/OpenRTL87X0C/tools/arm-none-eabi-gcc/arm-none-eabi/bin/ $(MAKE) -C sdk/OpenRTL87X0C/project/OpenBeken/GCC-RELEASE APP_VERSION=$(APP_VERSION) OBK_VARIANT=$(OBK_VARIANT) -j $(shell nproc)
 	mkdir -p output/$(APP_VERSION)
 	cp sdk/OpenRTL87X0C/project/OpenBeken/GCC-RELEASE/application_is/Debug/bin/flash_is.bin output/$(APP_VERSION)/OpenRTL87X0C_$(APP_VERSION).bin
 	cp sdk/OpenRTL87X0C/project/OpenBeken/GCC-RELEASE/application_is/Debug/bin/firmware_is.bin output/$(APP_VERSION)/OpenRTL87X0C_$(APP_VERSION)_ota.img
@@ -570,7 +624,8 @@ OpenRTL8710B: prebuild_OpenRTL8710B
 	dd conv=notrunc bs=1K if=sdk/OpenRTL8710A_B/project/obk_amebaz/GCC-RELEASE/application/Debug/bin/boot_all.bin of=output/$(APP_VERSION)/OpenRTL8710B_$(APP_VERSION).bin seek=0
 	dd conv=notrunc bs=1K if=sdk/OpenRTL8710A_B/project/obk_amebaz/GCC-RELEASE/application/Debug/bin/image2_all_ota1.bin of=output/$(APP_VERSION)/OpenRTL8710B_$(APP_VERSION).bin seek=44
 	./platforms/RTL8710B/tools/amebaz_ota_combine sdk/OpenRTL8710A_B/project/obk_amebaz/GCC-RELEASE/application/Debug/bin/image2_all_ota1.bin sdk/OpenRTL8710A_B/project/obk_amebaz/GCC-RELEASE/application/Debug/bin/image2_all_ota2.bin output/$(APP_VERSION)/OpenRTL8710B_$(APP_VERSION)_ota.img
-	
+	./platforms/RTL8710B/tools/amebaz_ug_from_ota output/$(APP_VERSION)/OpenRTL8710B_$(APP_VERSION)_ota.img output/$(APP_VERSION)/OpenRTL8710B_UG_$(APP_VERSION).img
+
 .PHONY: OpenRTL8710A
 OpenRTL8710A: prebuild_OpenRTL8710A
 	$(MAKE) -C sdk/OpenRTL8710A_B/project/obk_ameba1/GCC-RELEASE APP_VERSION=$(APP_VERSION) OBK_VARIANT=$(OBK_VARIANT) -j $(shell nproc)
@@ -609,7 +664,17 @@ OpenRTL8720E: prebuild_OpenRTL8720E
 
 .PHONY: OpenBK7238
 OpenBK7238: prebuild_OpenBK7238
-	cd sdk/beken_freertos_sdk && OBK_VARIANT=$(OBK_VARIANT) sh build.sh bk7238 $(APP_VERSION)
+ifeq ($(OBK_VARIANT), 8)
+	cd sdk/beken_freertos_sdk && \
+	cp -f beken378/app/config/sys_config_bk7238.h beken378/app/config/sys_config_bk7238.h.bak && \
+	sed -i 's/#if 0\/\/BTPROXY/#if 1/' beken378/app/config/sys_config_bk7238.h && \
+	ARM_GCC_TOOLCHAIN=$(PWD)/sdk/beken_freertos_sdk/toolchain/arm-none-eabi/bin/ OBK_VARIANT=$(OBK_VARIANT) sh build.sh bk7238 $(APP_VERSION); \
+	rc=$$?; \
+	mv -f beken378/app/config/sys_config_bk7238.h.bak beken378/app/config/sys_config_bk7238.h; \
+	exit $$rc
+else
+	cd sdk/beken_freertos_sdk && ARM_GCC_TOOLCHAIN=$(PWD)/sdk/beken_freertos_sdk/toolchain/arm-none-eabi/bin/ OBK_VARIANT=$(OBK_VARIANT) sh build.sh bk7238 $(APP_VERSION)
+endif
 	mkdir -p output/$(APP_VERSION)
 	cp sdk/beken_freertos_sdk/out/bk7238.bin output/$(APP_VERSION)/OpenBK7238_${APP_VERSION}.bin
 	cp sdk/beken_freertos_sdk/out/bk7238_QIO.bin output/$(APP_VERSION)/OpenBK7238_QIO_${APP_VERSION}.bin
@@ -618,7 +683,7 @@ OpenBK7238: prebuild_OpenBK7238
 
 .PHONY: OpenBK7231U
 OpenBK7231U: prebuild_OpenBK7231U
-	cd sdk/beken_freertos_sdk && sh build.sh bk7231u $(APP_VERSION)
+	cd sdk/beken_freertos_sdk && ARM_GCC_TOOLCHAIN=$(PWD)/sdk/beken_freertos_sdk/toolchain/arm-none-eabi/bin/ OBK_VARIANT=$(OBK_VARIANT) sh build.sh bk7231u $(APP_VERSION)
 	mkdir -p output/$(APP_VERSION)
 	cp sdk/beken_freertos_sdk/out/bk7231u_QIO.bin output/$(APP_VERSION)/OpenBK7231U_QIO_${APP_VERSION}.bin
 	cp sdk/beken_freertos_sdk/out/bk7231u.bin output/$(APP_VERSION)/OpenBK7231U_${APP_VERSION}.bin
@@ -627,7 +692,7 @@ OpenBK7231U: prebuild_OpenBK7231U
 
 .PHONY: OpenBK7252
 OpenBK7252: prebuild_OpenBK7252
-	cd sdk/beken_freertos_sdk && sh build.sh bk7251 $(APP_VERSION)
+	cd sdk/beken_freertos_sdk && ARM_GCC_TOOLCHAIN=$(PWD)/sdk/beken_freertos_sdk/toolchain/arm-none-eabi/bin/ OBK_VARIANT=$(OBK_VARIANT) sh build.sh bk7251 $(APP_VERSION)
 	mkdir -p output/$(APP_VERSION)
 	cp sdk/beken_freertos_sdk/out/bk7251.bin output/$(APP_VERSION)/OpenBK7252_${APP_VERSION}.bin
 	cp sdk/beken_freertos_sdk/out/bk7251_QIO.bin output/$(APP_VERSION)/OpenBK7252_QIO_${APP_VERSION}.bin
@@ -638,7 +703,7 @@ OpenBK7252: prebuild_OpenBK7252
 
 .PHONY: OpenBK7252N
 OpenBK7252N: prebuild_OpenBK7252N
-	cd sdk/beken_freertos_sdk && sh build.sh bk7252n $(APP_VERSION)
+	cd sdk/beken_freertos_sdk && ARM_GCC_TOOLCHAIN=$(PWD)/sdk/beken_freertos_sdk/toolchain/arm-none-eabi/bin/ OBK_VARIANT=$(OBK_VARIANT) sh build.sh bk7252n $(APP_VERSION)
 	mkdir -p output/$(APP_VERSION)
 	cp sdk/beken_freertos_sdk/out/bk7252n.bin output/$(APP_VERSION)/OpenBK7252N_${APP_VERSION}.bin
 	cp sdk/beken_freertos_sdk/out/bk7252n_QIO.bin output/$(APP_VERSION)/OpenBK7252N_QIO_${APP_VERSION}.bin
@@ -649,7 +714,17 @@ OpenBK7252N: prebuild_OpenBK7252N
 
 .PHONY: OpenBK7231N_ALT
 OpenBK7231N_ALT: prebuild_OpenBK7231N_ALT
-	cd sdk/beken_freertos_sdk && OBK_VARIANT=$(OBK_VARIANT) sh build.sh bk7231n $(APP_VERSION)
+ifeq ($(OBK_VARIANT), 8)
+	cd sdk/beken_freertos_sdk && \
+	cp -f beken378/app/config/sys_config_bk7231n.h beken378/app/config/sys_config_bk7231n.h.bak && \
+	sed -i 's/#if 0\/\/BTPROXY/#if 1/' beken378/app/config/sys_config_bk7231n.h && \
+	ARM_GCC_TOOLCHAIN=$(PWD)/sdk/beken_freertos_sdk/toolchain/arm-none-eabi/bin/ OBK_VARIANT=$(OBK_VARIANT) sh build.sh bk7231n $(APP_VERSION)_ALT; \
+	rc=$$?; \
+	mv -f beken378/app/config/sys_config_bk7231n.h.bak beken378/app/config/sys_config_bk7231n.h; \
+	exit $$rc
+else
+	cd sdk/beken_freertos_sdk && ARM_GCC_TOOLCHAIN=$(PWD)/sdk/beken_freertos_sdk/toolchain/arm-none-eabi/bin/ OBK_VARIANT=$(OBK_VARIANT) sh build.sh bk7231n $(APP_VERSION)_ALT
+endif
 	mkdir -p output/$(APP_VERSION)
 	cp sdk/beken_freertos_sdk/out/bk7231n_QIO.bin output/$(APP_VERSION)/OpenBK7231N_ALT_QIO_${APP_VERSION}.bin
 	cp sdk/beken_freertos_sdk/out/bk7231n.bin output/$(APP_VERSION)/OpenBK7231N_ALT_${APP_VERSION}.bin
@@ -659,7 +734,7 @@ OpenBK7231N_ALT: prebuild_OpenBK7231N_ALT
 
 .PHONY: OpenBK7231T_ALT
 OpenBK7231T_ALT: prebuild_OpenBK7231T_ALT
-	cd sdk/beken_freertos_sdk && sh build.sh bk7231 $(APP_VERSION)
+	cd sdk/beken_freertos_sdk && ARM_GCC_TOOLCHAIN=$(PWD)/sdk/beken_freertos_sdk/toolchain/arm-none-eabi/bin/ OBK_VARIANT=$(OBK_VARIANT) sh build.sh bk7231 $(APP_VERSION)_ALT
 	mkdir -p output/$(APP_VERSION)
 	cp sdk/beken_freertos_sdk/out/bk7231t_QIO.bin output/$(APP_VERSION)/OpenBK7231T_ALT_QIO_${APP_VERSION}.bin
 	cp sdk/beken_freertos_sdk/out/bk7231u.bin output/$(APP_VERSION)/OpenBK7231T_ALT_${APP_VERSION}.bin
@@ -696,14 +771,26 @@ OpenRDA5981: prebuild_OpenRDA5981
 	./sdk/OpenRDA5981/ota_lzma/xz --format=lzma -A -z -k -v -c sdk/OpenRDA5981/.build/OpenBeken.bin > sdk/OpenRDA5981/.build/OpenBeken.bin.lzma
 	python3 sdk/OpenRDA5981/ota_lzma/ota_pack_image_lzma.py sdk/OpenRDA5981/.build/OpenBeken.bin sdk/OpenRDA5981/.build/OpenBeken.bin.lzma output/$(APP_VERSION)/OpenRDA5981_$(APP_VERSION)_ota.img $(APP_VERSION)
 
+.PHONY: OpenBL616
+OpenBL616: prebuild_OpenBL616
+	cd ./platforms/BL616 && PATH="$(PATH):$(PWD)/platforms/BL616/gcc/bin" $(MAKE) CHIP=bl616 BOARD=bl616dk APP_VERSION=$(APP_VERSION) OBK_VARIANT=$(OBK_VARIANT)
+	mkdir -p output/$(APP_VERSION)
+	cp ./platforms/BL616/build/build_out/OpenBeken_bl616.bin output/$(APP_VERSION)/OpenBL616_${APP_VERSION}.bin
+	cp ./platforms/BL616/build/build_out/OpenBeken_bl616.xz.ota output/$(APP_VERSION)/OpenBL616_${APP_VERSION}_OTA.bin.xz.ota
+
+.PHONY: OpenBL602_ALT
+OpenBL602_ALT: prebuild_OpenBL602_ALT
+	cd ./platforms/BL602_ALT && PATH="$(PATH):$(PWD)/platforms/BL616/gcc/bin" $(MAKE) CHIP=bl602 BOARD=bl602dk APP_VERSION=$(APP_VERSION) OBK_VARIANT=$(OBK_VARIANT)
+	mkdir -p output/$(APP_VERSION)
+	dd conv=notrunc bs=1K skip=4 if=platforms/BL602_ALT/build/build_out/OpenBeken_bl602.bin of=output/$(APP_VERSION)/OpenBL602_ALT_${APP_VERSION}.bin
+	cp ./platforms/BL602_ALT/build/build_out/OpenBeken_bl602.xz.ota output/$(APP_VERSION)/OpenBL602_ALT_${APP_VERSION}_OTA.bin.xz.ota
+
 # Add custom Makefile if required
 -include custom.mk
 
 # clean .o files and output directory
 .PHONY: clean
 clean: 
-	-test -d ./sdk/OpenBK7231T && $(MAKE) -C sdk/OpenBK7231T/platforms/bk7231t/bk7231t_os APP_BIN_NAME=$(APP_NAME) USER_SW_VER=$(APP_VERSION) clean
-	-test -d ./sdk/OpenBK7231N && $(MAKE) -C sdk/OpenBK7231N/platforms/bk7231n/bk7231n_os APP_BIN_NAME=$(APP_NAME) USER_SW_VER=$(APP_VERSION) clean
 	-test -d ./sdk/OpenXR809 && $(MAKE) -C sdk/OpenXR809/src clean
 	-test -d ./sdk/OpenXR809 && $(MAKE) -C sdk/OpenXR809/project/oxr_sharedApp/gcc clean
 	-test -d ./sdk/OpenXR806 && $(MAKE) -C sdk/OpenXR806/src clean
@@ -734,6 +821,10 @@ clean:
 	-test -d ./platforms/ESP-IDF/build-c61 && cmake --build ./platforms/ESP-IDF/build-c61 --target clean
 	-test -d ./platforms/ESP8266/build && cmake --build ./platforms/ESP8266/build --target clean
 	-test -d ./sdk/OpenECR6600 && cd sdk/OpenECR6600 && make BOARD_DIR=$(ECRDIR)/Boards/ecr6600/standalone APP_NAME=OpenBeken TOPDIR=$(ECRDIR) GCC_PATH=$(ECRDIR)/tool/nds32le-elf-mculib-v3s/bin/ clean
+	-test -d ./sdk/OpenBL602 && $(MAKE) -C sdk/OpenBL602/customer_app/bl602_sharedApp USER_SW_VER=$(APP_VERSION) OBK_VARIANT=$(OBK_VARIANT) CONFIG_CHIP_NAME=BL602
+	-test -d ./platforms/BL616/build && $(MAKE) -C ./platforms/BL616 clean
+	-test -d ./sdk/OpenBK7231T && $(MAKE) -C sdk/OpenBK7231T/platforms/bk7231t/bk7231t_os APP_BIN_NAME=$(APP_NAME) USER_SW_VER=$(APP_VERSION) clean
+	-test -d ./sdk/OpenBK7231N && $(MAKE) -C sdk/OpenBK7231N/platforms/bk7231n/bk7231n_os APP_BIN_NAME=$(APP_NAME) USER_SW_VER=$(APP_VERSION) clean
 	-$(RM) -r $(BUILD_DIR)
 
 # Example upload command - import the following snippet into Node-RED and update the IPs in the variables below

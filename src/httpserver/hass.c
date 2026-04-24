@@ -6,6 +6,7 @@
 #include "../driver/drv_public.h"
 #include "../new_pins.h"
 #include "../cmnds/cmd_enums.h"
+#include "../driver/drv_local.h"
 
 #if ENABLE_HA_DISCOVERY
 
@@ -337,6 +338,31 @@ HassDeviceInfo* hass_createSelectEntityIndexed(const char* state_topic, const ch
 		value_template, command_template);
 }
 
+
+HassDeviceInfo* hass_createGarageEntity(const char* state_topic, const char* command_topic,
+	const char *title) {
+	HassDeviceInfo* info = hass_init_device_info(HASS_GARAGE, 0, NULL, NULL, 0, title);
+
+	cJSON_AddStringToObject(info->root, "name", title);
+	cJSON_AddStringToObject(info->root, "unique_id", title);
+	cJSON_AddStringToObject(info->root, "device_class", "garage");
+	cJSON_AddStringToObject(info->root, "state_topic", state_topic);
+	cJSON_AddStringToObject(info->root, "command_topic", command_topic);
+	// publish [Topic] [Value]
+	// publish 1 open
+	// publish 1 closed
+	// publish 1 opening  
+	// obk0696FB33/[Topic]/get
+	cJSON_AddStringToObject(info->root, "payload_open", "OPEN");
+	cJSON_AddStringToObject(info->root, "payload_close", "CLOSE");
+	cJSON_AddStringToObject(info->root, "payload_stop", "STOP");
+	cJSON_AddStringToObject(info->root, "state_open", "open");
+	cJSON_AddStringToObject(info->root, "state_closed", "closed");
+
+	sprintf(info->channel, "cover/%s/config", info->unique_id);
+	return info;
+}
+
 HassDeviceInfo* hass_createSelectEntityIndexedCustom(const char* state_topic, const char* command_topic, int numoptions,
 	const char* options[], const char* title, char* value_template, char* command_template) {
 	HassDeviceInfo* info = hass_init_device_info(HASS_SELECT, 0, NULL, NULL, 0, title);
@@ -461,6 +487,42 @@ HassDeviceInfo* hass_createHVAC(float min, float max, float step, const char **f
 
 	return info;
 }
+HassDeviceInfo* hass_createShutter(int index) {
+	HassDeviceInfo* info = hass_init_device_info(HASS_GARAGE, index, NULL, NULL, 0, 0);
+
+	char buffer[64];
+
+	//cJSON_AddStringToObject(info->root, "name", title);
+	//cJSON_AddStringToObject(info->root, "unique_id", title);
+	cJSON_AddStringToObject(info->root, "device_class", "garage");
+
+	if (0) {
+		sprintf(buffer, "~/shutterState%i/get", index);
+		cJSON_AddStringToObject(info->root, "state_topic", buffer);
+	}
+	sprintf(buffer, "cmnd/%s/ShutterMove%d", CFG_GetMQTTClientId(), index);
+	cJSON_AddStringToObject(info->root, "command_topic", buffer);
+
+	cJSON_AddStringToObject(info->root, "state_open", "open");
+	cJSON_AddStringToObject(info->root, "state_closed", "closed");
+	cJSON_AddStringToObject(info->root, "payload_open", "OPEN");
+	cJSON_AddStringToObject(info->root, "payload_close", "CLOSE");
+	cJSON_AddStringToObject(info->root, "payload_stop", "STOP");
+
+	if (1) {
+		sprintf(buffer, "~/shutterPos%i/get", index);
+		cJSON_AddStringToObject(info->root, "position_topic", buffer);
+		sprintf(buffer, "cmnd/%s/ShutterMove%d", CFG_GetMQTTClientId(), index);
+		cJSON_AddStringToObject(info->root, "set_position_topic", buffer);
+
+		cJSON_AddNumberToObject(info->root, "position_open", 100);
+		cJSON_AddNumberToObject(info->root, "position_closed", 0);
+	}
+
+	sprintf(info->channel, "cover/%s/config", info->unique_id);
+	return info;
+}
+
 /// @brief Initializes HomeAssistant device discovery storage with common values.
 /// @param type 
 /// @param index This is used to generate generate unique_id and name. 
@@ -575,6 +637,9 @@ HassDeviceInfo* hass_init_device_info(ENTITY_TYPE type, int index, const char* p
 			break;
 		case HASS_IP:
 			sprintf(g_hassBuffer, "IP");
+			break; 
+		case HASS_GARAGE:
+			sprintf(g_hassBuffer, "Garage");
 			break;
 		case ENERGY_SENSOR:
 			isSensor = true;
@@ -593,7 +658,8 @@ HassDeviceInfo* hass_init_device_info(ENTITY_TYPE type, int index, const char* p
 		}
 	}
 	if (title) {
-		if (type!=HASS_BUTTON) strcat(g_hassBuffer, "_");
+		if (type!=HASS_BUTTON) 
+			strcat(g_hassBuffer, "_");
 		strcat(g_hassBuffer, title);
 	}
 	cJSON_AddStringToObject(info->root, "name", g_hassBuffer);
@@ -606,12 +672,12 @@ HassDeviceInfo* hass_init_device_info(ENTITY_TYPE type, int index, const char* p
 	if (DRV_IsRunning("DoorSensor") == false && DRV_IsRunning("tmSensor") == false)
 #endif
 	{
-		if (!isSensor && !flagavty) {
+		if (!flagavty) {
 			cJSON_AddStringToObject(info->root, "avty_t", "~/connected");   //availability_topic, `online` value is broadcasted
 		}
 	}
 
-	if (!isSensor && type != HASS_TEXTFIELD) {	//Sensors (except binary_sensor) don't use payload 
+	if (!isSensor && type != HASS_TEXTFIELD && type != HASS_GARAGE) {	//Sensors (except binary_sensor) don't use payload 
 		if(type == HASS_BUTTON) {
 			cJSON_AddStringToObject(info->root, "payload_press", payload_on);
 		}
@@ -764,6 +830,31 @@ HassDeviceInfo* hass_init_light_device_info(ENTITY_TYPE type) {
 	cJSON_AddStringToObject(info->root, "bri_cmd_t", g_hassBuffer);  //brightness_command_topic
 
 	cJSON_AddNumberToObject(info->root, "bri_scl", brightness_scale);	//brightness_scale
+
+#if ENABLE_DRIVER_PIXELANIM
+	if((DRV_IsRunning("SM16703P") || DRV_IsRunning("DMX")) && DRV_IsRunning("PixelAnim"))
+	{
+		cJSON_AddStringToObject(info->root, "fx_stat_t", "~/currentAnim/get");
+		sprintf(g_hassBuffer, "cmnd/%s/anim", CFG_GetMQTTClientId());
+		cJSON_AddStringToObject(info->root, "fx_cmd_t", g_hassBuffer);
+
+		char entry[64];
+		cJSON* fxmodes = cJSON_CreateArray();
+		cJSON_AddItemToArray(fxmodes, cJSON_CreateString("None"));
+		strcpy(g_hassBuffer, "{{ {");
+		strcat(g_hassBuffer, "'None':-1");
+		for(int i = 0; i < g_numAnims; i++)
+		{
+			const char* mode = g_anims[i].name;
+			cJSON_AddItemToArray(fxmodes, cJSON_CreateString(mode));
+			snprintf(entry, sizeof(entry), ",'%s':%d", g_anims[i].name, i);
+			strcat(g_hassBuffer, entry);
+		}
+		strcat(g_hassBuffer, "}[value] }}");
+		cJSON_AddItemToObject(info->root, "fx_list", fxmodes);
+		cJSON_AddItemToObject(info->root, "fx_cmd_tpl", cJSON_CreateString(g_hassBuffer));
+	}
+#endif
 
 	return info;
 }
@@ -1120,12 +1211,12 @@ HassDeviceInfo* hass_init_sensor_device_info(ENTITY_TYPE type, int channel, int 
 /// @return 
 const char* hass_build_discovery_json(HassDeviceInfo* info) {
 	if (info == NULL) {
-		addLogAdv(LOG_ERROR, LOG_FEATURE_HASS, "ERROR: someone passed NULL pointer to hass_build_discovery_json\r\n");
+		addLogAdv(LOG_ERROR, LOG_FEATURE_HASS, "ERROR: someone passed NULL pointer to hass_build_discovery_json");
 		return "";
 	}
 	int bOk = cJSON_PrintPreallocated(info->root, info->json, HASS_JSON_SIZE, 0);
 	if (bOk == false) {
-		addLogAdv(LOG_ERROR, LOG_FEATURE_HASS, "ERROR: too long JSON in hass_build_discovery_json\r\n");
+		addLogAdv(LOG_ERROR, LOG_FEATURE_HASS, "ERROR: too long JSON in hass_build_discovery_json");
 		return "";
 	}
 	return info->json;
@@ -1136,7 +1227,7 @@ const char* hass_build_discovery_json(HassDeviceInfo* info) {
 void hass_free_device_info(HassDeviceInfo* info) {
 	if (info == NULL)
 		return;
-	//addLogAdv(LOG_DEBUG, LOG_FEATURE_HASS, "hass_free_device_info \r\n");
+	//addLogAdv(LOG_DEBUG, LOG_FEATURE_HASS, "hass_free_device_info ");
 
 	if (info->root != NULL) {
 		cJSON_Delete(info->root);

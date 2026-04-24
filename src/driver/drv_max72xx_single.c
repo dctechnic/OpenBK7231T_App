@@ -315,7 +315,6 @@ byte g_font[] =
 	4, 157, 160, 160, 125,    // 255 - y diaresis
 	255,
 };
-
 byte *MAX_GetFontStart(byte code) {
 	byte *p;
 	byte current;
@@ -412,6 +411,23 @@ static commandResult_t DRV_MAX72XX_Clear(const void *context, const char *cmd, c
 	}
 	return CMD_RES_OK;
 }
+static commandResult_t DRV_MAX72XX_SetPixel(const void *context, const char *cmd, const char *args, int flags) {
+
+	if (g_max == 0)
+		return CMD_RES_ERROR;
+
+	Tokenizer_TokenizeString(args, 0);
+
+
+	int x, y, b;
+	x = Tokenizer_GetArgInteger(0);
+	y = Tokenizer_GetArgInteger(1);
+	b = Tokenizer_GetArgInteger(2);
+
+	MAX72XX_setPixel(g_max, x, y, b);
+
+	return CMD_RES_OK;
+}
 static commandResult_t DRV_MAX72XX_Print(const void *context, const char *cmd, const char *args, int flags) {
 	int ofs;
 	//const char *s;
@@ -477,13 +493,22 @@ void DRV_MAX72XX_Init() {
 	//cmddetail:"examples":""}
 	CMD_RegisterCommand("MAX72XX_Print", DRV_MAX72XX_Print, NULL);
 
+	//cmddetail:{"name":"MAX72XX_refresh","args":"TODO",
+	//cmddetail:"descr":"",
+	//cmddetail:"fn":"DRV_MAX72XX_Show","file":"driver/drv_max72xx_single.c","requires":"",
+	//cmddetail:"examples":""}
 	CMD_RegisterCommand("MAX72XX_refresh", DRV_MAX72XX_Show, NULL);
 	
-	//cmddetail:{"name":"DRV_MAX72XX_Clear","args":"DRV_MAX72XX_Clear",
+	//cmddetail:{"name":"MAX72XX_Clear","args":"TODO",
 	//cmddetail:"descr":"",
-	//cmddetail:"fn":"DRV_DRV_MAX72XX_Clear","file":"driver/drv_max72xx_single.c","requires":"",
+	//cmddetail:"fn":"DRV_MAX72XX_Clear","file":"driver/drv_max72xx_single.c","requires":"",
 	//cmddetail:"examples":""}
 	CMD_RegisterCommand("MAX72XX_Clear", DRV_MAX72XX_Clear, NULL);
+	//cmddetail:{"name":"MAX72XX_SetPixel","args":"TODO",
+	//cmddetail:"descr":"",
+	//cmddetail:"fn":"DRV_MAX72XX_SetPixel","file":"driver/drv_max72xx_single.c","requires":"",
+	//cmddetail:"examples":""}
+	CMD_RegisterCommand("MAX72XX_SetPixel", DRV_MAX72XX_SetPixel, NULL);
 }
 
 

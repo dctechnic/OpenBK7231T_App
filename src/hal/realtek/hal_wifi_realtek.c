@@ -140,14 +140,14 @@ void HAL_PrintNetworkInfo()
 {
 	uint8_t mac[6];
 	WiFI_GetMacAddress((char*)mac);
-	ADDLOG_DEBUG(LOG_FEATURE_GENERAL, "+--------------- net device info ------------+\r\n");
-	ADDLOG_DEBUG(LOG_FEATURE_GENERAL, "|netif type    : %-16s            |\r\n", g_bOpenAccessPointMode == 0 ? "STA" : "AP");
-	ADDLOG_DEBUG(LOG_FEATURE_GENERAL, "|netif rssi    = %-16i            |\r\n", HAL_GetWifiStrength());
-	ADDLOG_DEBUG(LOG_FEATURE_GENERAL, "|netif ip      = %-16s            |\r\n", HAL_GetMyIPString());
-	ADDLOG_DEBUG(LOG_FEATURE_GENERAL, "|netif mask    = %-16s            |\r\n", HAL_GetMyMaskString());
-	ADDLOG_DEBUG(LOG_FEATURE_GENERAL, "|netif gateway = %-16s            |\r\n", HAL_GetMyGatewayString());
-	ADDLOG_DEBUG(LOG_FEATURE_GENERAL, "|netif mac     : [%02X:%02X:%02X:%02X:%02X:%02X] %-7s |\r\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], "");
-	ADDLOG_DEBUG(LOG_FEATURE_GENERAL, "+--------------------------------------------+\r\n");
+	ADDLOG_DEBUG(LOG_FEATURE_GENERAL, "+--------------- net device info ------------+");
+	ADDLOG_DEBUG(LOG_FEATURE_GENERAL, "|netif type    : %-16s            |", g_bOpenAccessPointMode == 0 ? "STA" : "AP");
+	ADDLOG_DEBUG(LOG_FEATURE_GENERAL, "|netif rssi    = %-16i            |", HAL_GetWifiStrength());
+	ADDLOG_DEBUG(LOG_FEATURE_GENERAL, "|netif ip      = %-16s            |", HAL_GetMyIPString());
+	ADDLOG_DEBUG(LOG_FEATURE_GENERAL, "|netif mask    = %-16s            |", HAL_GetMyMaskString());
+	ADDLOG_DEBUG(LOG_FEATURE_GENERAL, "|netif gateway = %-16s            |", HAL_GetMyGatewayString());
+	ADDLOG_DEBUG(LOG_FEATURE_GENERAL, "|netif mac     : [%02X:%02X:%02X:%02X:%02X:%02X] %-7s |", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], "");
+	ADDLOG_DEBUG(LOG_FEATURE_GENERAL, "+--------------------------------------------+");
 }
 
 int HAL_GetWifiStrength()
@@ -366,8 +366,9 @@ void ConfigureSTA(obkStaticIP_t* ip)
 		netif_set_addr(&xnetif[0], ip_2_ip4(&ipaddr), ip_2_ip4(&netmask), ip_2_ip4(&gw));
 		dns_setserver(0, &dnsserver);
 	}
-	if(!g_bStaticIP) wifi_config_autoreconnect(1, 2, 3);
-	else wifi_set_autoreconnect(0);
+	//if(!g_bStaticIP) wifi_config_autoreconnect(1, 2, 3);
+	//else wifi_set_autoreconnect(0);
+	wifi_set_autoreconnect(0);
 	netif_set_hostname(&xnetif[0], CFG_GetDeviceName());
 }
 

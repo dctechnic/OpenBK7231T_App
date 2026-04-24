@@ -29,7 +29,9 @@ const char *str_rssi[] = { "N/A", "Weak", "Fair", "Good", "Excellent" };
 #ifdef WRAP_PRINTF
 #define vsnprintf3 __wrap_vsnprintf
 #define snprintf3 __wrap_snprintf
+#if !PLATFORM_LN8825
 #define sprintf3 __wrap_sprintf
+#endif
 #define vsprintf3 __wrap_vsprintf
 #endif
 
@@ -112,7 +114,7 @@ const char* strcasestr(const char* str1, const char* str2)
 // where is buffer with [64] bytes?
 // 2022-11-02 update: It was also causing crash on OpenBL602. Original strdup was crashing while my strdup works.
 // Let's just rename test_strdup to strdup and let it be our main correct strdup
-#if !defined(PLATFORM_W600) && !defined(PLATFORM_W800) && !defined(WINDOWS) && !defined(PLATFORM_ECR6600) && !PLATFORM_REALTEK_NEW
+#if !defined(PLATFORM_W600) && !defined(PLATFORM_W800) && !defined(WINDOWS) && !defined(PLATFORM_ECR6600) && !PLATFORM_REALTEK_NEW && !PLATFORM_BL_NEW
 // W600 and W800 already seem to have a strdup?
 char *strdup(const char *s)
 {
@@ -299,6 +301,14 @@ int wal_strnicmp(const char* a, const char* b, int count) {
 	return ca - cb;
 }
 
+char *wal_stristr(const char *haystack, const char *needle) {
+    size_t nlen = strlen(needle);
+    for (; *haystack; haystack++) {
+        if (wal_strnicmp(haystack, needle, nlen) == 0) return (char *)haystack;
+    }
+    return NULL;
+}
+
 const char* skipToNextWord(const char* p) {
 	while (isWhiteSpace(*p) == false) {
 		if (*p == 0)
@@ -316,7 +326,11 @@ const char* skipToNextWord(const char* p) {
 int STR_ReplaceWhiteSpacesWithUnderscore(char *p) {
 	int r = 0;
 	while (*p) {
-		if (*p == ' ' || *p == '\t') {
+		bool bSpecialChar = false;
+		if (*((byte*)p) > 127) {
+			bSpecialChar = true;
+		}
+		if (*p == ' ' || *p == '\t' || bSpecialChar) {
 			r++;
 			*p = '_';
 		}

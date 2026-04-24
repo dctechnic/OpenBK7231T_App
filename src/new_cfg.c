@@ -26,11 +26,7 @@ int g_cfg_pendingChanges = 0;
 #define MAIN_CFG_VERSION_V3 3
 // version 4 - bumped size by 1024,
 // added alternate ssid fields
-#if PLATFORM_W600
-#define MAIN_CFG_VERSION 3
-#else
 #define MAIN_CFG_VERSION 5
-#endif
 
 static byte CFG_CalcChecksum(mainConfig_t *inf) {
 	int header_size;
@@ -54,7 +50,7 @@ static byte CFG_CalcChecksum(mainConfig_t *inf) {
 	}
 	remaining_size = configSize - header_size;
 
-	ADDLOG_DEBUG(LOG_FEATURE_CFG, "CFG_CalcChecksum: header size %i, total size %i, rem size %i\n",
+	ADDLOG_DEBUG(LOG_FEATURE_CFG, "CFG_CalcChecksum: header size %i, total size %i, rem size %i",
 		header_size, configSize, remaining_size);
 
 	// This is more flexible method and won't be affected by field offsets
@@ -82,7 +78,7 @@ bool CFG_HasValidLEDCorrectionTable() {
 	}
 }
 void CFG_SetDefaultLEDCorrectionTable() {
-	addLogAdv(LOG_INFO, LOG_FEATURE_CFG, "CFG_SetDefaultLEDCorrectionTable: setting defaults\r\n");
+	addLogAdv(LOG_INFO, LOG_FEATURE_CFG, "CFG_SetDefaultLEDCorrectionTable: setting defaults");
 	for (int c = 0; c < 3; c++) {
 		g_cfg.led_corr.rgb_cal[c] = 1.0f;
 	}
@@ -871,7 +867,16 @@ void CFG_InitAndLoad() {
 #if ALLOW_WEB_PASSWORD
 	// add web admin password configuration
 	if (g_cfg.version<5) {
+#if defined(PLATFORM_W600)
+	// W600 changed from V3 to V5, so at this point
+	// we read a valid V3 config but need a V5 config.
+	// Memory might contain old data (from flash_vars)
+	// so let's zero complete additional memory (including g_cfg.webPassword, making it empty).
+		memset((char*)(&g_cfg) + MAGIC_CONFIG_SIZE_V3, 0, sizeof(mainConfig_t) - MAGIC_CONFIG_SIZE_V3);
+		g_cfg_pendingChanges ++;
+#else
 		strcpy_safe(g_cfg.webPassword, "", sizeof(g_cfg.webPassword));
+#endif
 	}
 #endif
 	g_cfg.version = MAIN_CFG_VERSION;

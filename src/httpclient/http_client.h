@@ -97,12 +97,14 @@ typedef struct {
 #define HTTPREQUEST_FLAG_FREE_HEADER		8
 #define HTTPREQUEST_FLAG_FREE_POST_CONTENT_TYPE	16
 #define HTTPREQUEST_FLAG_FREE_RESPONSEBUF	32
+#define HTTPREQUEST_FLAG_FREE_CMDONDONE			64
 
 typedef struct httprequest_t_tag{
     int state;
     int (*data_callback)(struct httprequest_t_tag *request);
     httpclient_t client;
     const char *url;
+	const char *cmdToRun;
 	// This will be freed if HTTPREQUEST_FLAG_FREE_HEADER flag is set
     char *header;
     int port;
@@ -161,9 +163,23 @@ typedef struct httprequest_t_tag{
  * @endcode
  */
 int HTTPClient_Async_SendGeneric(httprequest_t *request);
-int HTTPClient_Async_SendGet(const char *url_in, const char *tgFile);
+int HTTPClient_Async_SendGet(const char *url_in, const char *tgFile, const char *postGetCommand);
 int HTTPClient_Async_SendPost(const char *url_in, int http_port, const char *content_type, const char *post_content, const char *post_header);
 void HTTPClient_SetCustomHeader(httpclient_t *client, const char *header);
+
+#ifdef WINDOWS
+enum {
+	HTTPCLIENT_TEST_FAIL_NONE = 0,
+	HTTPCLIENT_TEST_FAIL_SENDPOST_REQUEST_ALLOC,
+	HTTPCLIENT_TEST_FAIL_SENDPOST_POSTBUF_DUP,
+	HTTPCLIENT_TEST_FAIL_SENDGET_RESPONSEBUF_ALLOC,
+};
+void HTTPClient_Test_SetFailPoint(int failPoint);
+void HTTPClient_Test_SetSkipAsyncThread(int bSkip);
+httprequest_t *HTTPClient_Test_GetLastRequest(void);
+void HTTPClient_Test_ClearLastRequest(void);
+void HTTPClient_Test_FreeLastRequest(void);
+#endif
 
 #ifdef __cplusplus
 }

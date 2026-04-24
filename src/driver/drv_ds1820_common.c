@@ -214,11 +214,13 @@ commandResult_t CMD_OW_testus(const void *context, const char *cmd, const char *
    }
 #define MAXUSTESTS 10
    int testvals[MAXUSTESTS];
-   int pin = Tokenizer_GetArgInteger(0);
+//   int pin = Tokenizer_GetArgInteger(0);
+   int pin = Tokenizer_GetPin(0,-1);
+   if (pin==-1) return CMD_RES_BAD_ARGUMENT;
    int pause = Tokenizer_GetArgInteger(1);
    if (tests > MAXUSTESTS){
       tests = MAXUSTESTS;
-      ADDLOG_ERROR(LOG_FEATURE_CMD, "testus -  Warning, will only do the first %i tests!\r\n",tests);
+      ADDLOG_ERROR(LOG_FEATURE_CMD, "testus - Warning, will only do the first %i tests!",tests);
    } 
    for (int i=0; i<tests; i++){
       testvals[i]=Tokenizer_GetArgInteger(2+i);
@@ -227,7 +229,7 @@ commandResult_t CMD_OW_testus(const void *context, const char *cmd, const char *
    for (int i=0; i<tests; i++){
       ADDLOG_DEBUG(LOG_FEATURE_CMD, "test %i value=%i ...",i,testvals[i]);
    }
-   ADDLOG_DEBUG(LOG_FEATURE_CMD, "\r\n starting tests ...");
+   ADDLOG_DEBUG(LOG_FEATURE_CMD, " starting tests ...");
 
    HAL_PIN_SetOutputValue(pin, 1);
    HAL_PIN_Setup_Output(pin);
@@ -243,7 +245,7 @@ commandResult_t CMD_OW_testus(const void *context, const char *cmd, const char *
       interrupts();
       HAL_Delay_us(pause);
    }
-   ADDLOG_DEBUG(LOG_FEATURE_CMD, "... tests done\r\n");
+   ADDLOG_DEBUG(LOG_FEATURE_CMD, "... tests done");
    return CMD_RES_OK;
 }
 #endif
