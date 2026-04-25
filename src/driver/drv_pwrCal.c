@@ -93,6 +93,19 @@ static commandResult_t GetPowerCal(const void *context, const char *cmd,
     return CMD_RES_OK;
 }
 
+static commandResult_t GetCalibration(const void *context, const char *cmd,
+                                      const char *args, int cmdFlags) {
+
+    float power_cal = CFG_GetPowerMeasurementCalibrationFloat(CFG_OBK_POWER,0);		
+	float current_cal = CFG_GetPowerMeasurementCalibrationFloat(CFG_OBK_CURRENT,0);		
+	float voltage_cal = CFG_GetPowerMeasurementCalibrationFloat(CFG_OBK_VOLTAGE,0);		
+	
+	
+    ADDLOG_INFO(LOG_FEATURE_CMD, "Calibration is %f %f %f", voltage_cal, power_cal, current_cal);
+    return CMD_RES_OK;
+}
+
+
 static float Scale(float raw, float cal) {
     return (cal_type == PWR_CAL_MULTIPLY ? raw * cal : raw / cal);
 }
@@ -127,6 +140,8 @@ void PwrCal_Init(pwr_cal_type_t type, float default_voltage_cal,
 	CMD_RegisterCommand("GetVoltageCal", GetVoltageCal, NULL);
 	CMD_RegisterCommand("GetCurrentCal", GetCurrentCal, NULL);
 	CMD_RegisterCommand("GetPowerCal", GetPowerCal, NULL);
+	CMD_RegisterCommand("GetCalibration", GetCalibration, NULL);
+	
 
 }
 
